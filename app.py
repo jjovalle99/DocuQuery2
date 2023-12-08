@@ -1,5 +1,4 @@
 import os
-from datetime import datetime
 
 import chainlit as cl
 from dotenv import load_dotenv
@@ -11,7 +10,7 @@ from langchain.vectorstores import Pinecone
 
 from src.chain import setup_chain
 from src.embeddings import setup_embeddings
-from src.loaders import load_pdf_files, write_pdf_files
+from src.loaders import get_docs
 from src.vectorstore import setup_pinecone
 
 load_dotenv()
@@ -40,10 +39,8 @@ async def start_chat():
     out = cl.Message(content=f"Loading {len(files)} file(s)...")
     await out.send()
 
-    tmp_folder = f"/tmp/pdf_files_{datetime.now().strftime('%Y%m%d%H%M%S')}"
-    os.makedirs(tmp_folder, exist_ok=True)
-    paths = write_pdf_files(files=files, tmp_folder=tmp_folder)
-    splitted_docs = load_pdf_files(paths=paths, splitter=splitter)
+    paths = [file.path for file in files]
+    splitted_docs = get_docs(files=files, splitter=splitter)
     retriever = vectorstore.as_retriever(
         search_kwargs={"filter": {"source": {"$in": paths}}}
     )
