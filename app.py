@@ -36,7 +36,7 @@ async def start_chat():
         timeout=60 * 60 * 24 * 7 * 365,
     ).send()
 
-    out = cl.Message(content=f"Loading {len(files)} file(s)...")
+    out = cl.Message(content="")
     await out.send()
 
     paths = [file.path for file in files]
@@ -47,7 +47,7 @@ async def start_chat():
     await retriever.aadd_documents(splitted_docs)
 
     cl.user_session.set("retriever", retriever)
-    out.content = "File(s) loaded!"
+    out.content = f"{len(files)} file(s) loaded! You can now ask questions."
     await out.update()
 
 
