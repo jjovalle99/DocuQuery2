@@ -1,4 +1,6 @@
+import logging
 import os
+from time import perf_counter
 
 import chainlit as cl
 from dotenv import load_dotenv
@@ -13,17 +15,25 @@ from src.embeddings import setup_embeddings
 from src.loaders import get_docs
 from src.vectorstore import setup_pinecone
 
-load_dotenv()
-set_llm_cache(InMemoryCache())  # Use in-memory cache for LLM
-os.environ["LANGCHAIN_WANDB_TRACING"] = "true"  # Visbility for W&B
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-index = setup_pinecone()
-embeddings = setup_embeddings()
-vectorstore = Pinecone(index=index, embedding=embeddings, text_key="text")
-prompt_chain = setup_chain()
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=500, chunk_overlap=100, length_function=len
-)
+try:
+    load_dotenv()
+    set_llm_cache(InMemoryCache())  # Use in-memory cache for LLM
+    os.environ["LANGCHAIN_WANDB_TRACING"] = "true"  # Visibility for W&B
+
+    index = setup_pinecone()
+    embeddings = setup_embeddings()
+    vectorstore = Pinecone(index=index, embedding=embeddings, text_key="text")
+    prompt_chain = setup_chain()
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=500, chunk_overlap=100, length_function=len
+    )
+    logger.info("Initialization completed successfully.")
+except Exception as e:
+    logger.exception("Failed during initialization: %s", str(e))
 
 
 @cl.on_chat_start
@@ -40,15 +50,26 @@ async def start_chat():
     await out.send()
 
     paths = [file.path for file in files]
+    logger.info("Preparing docs: %s", paths)
+    start = perf_counter()
     splitted_docs = get_docs(files=files, splitter=splitter)
+    end = perf_counter()
+    logger.info("Preparing docs took %s seconds.", end - start)
+
     retriever = vectorstore.as_retriever(
         search_kwargs={"filter": {"source": {"$in": paths}}}
     )
+
+    logger.info("Adding documents to vector store retriever.")
+    start = perf_counter()
     await retriever.aadd_documents(splitted_docs)
+    end = perf_counter()
+    logger.info("Adding documents took %s seconds.", end - start)
 
     cl.user_session.set("retriever", retriever)
-    out.content = f"{len(files)} file(s) loaded! You can now ask questions."
+    out.content = f"{len(files)} file(s) loaded! You can now ask questions"
     await out.update()
+    logger.info("Files loaded and retriever updated.")
 
 
 @cl.on_message
