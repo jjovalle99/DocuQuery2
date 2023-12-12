@@ -11,10 +11,10 @@ def setup_chain():
 
     Question: {question}
 
-    Answer:"""
-    human_message = HumanMessagePromptTemplate.from_template(template=human_template)
+    Answer:"""  # noqa: E501
+    human_message = HumanMessagePromptTemplate.from_template(template=human_template)  # noqa: E501
     llm = ChatOpenAI(model="gpt-3.5-turbo-1106", streaming=True)
-    prompt = ChatPromptTemplate.from_messages(messages=[system_message, human_message])
+    prompt = ChatPromptTemplate.from_messages(messages=[system_message, human_message])  # noqa: E501
     parser = StrOutputParser()
     chain = prompt | llm | parser
     return chain
