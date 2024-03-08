@@ -1,4 +1,3 @@
-from io import BytesIO
 from typing import List
 
 from chainlit.types import AskFileResponse
