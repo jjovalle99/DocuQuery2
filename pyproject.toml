@@ -1,0 +1,26 @@
+[tool.poetry]
+name = "docuquery2-0-1"
+version = "0.1.0"
+description = ""
+authors = ["jjovalle <jj.ovalle@uniandes.edu.co>"]
+readme = "README.md"
+packages = [{include = "src"}]
+
+[tool.poetry.dependencies]
+python = "~3.11"
+chainlit = "^1.0.400"
+python-dotenv = "^1.0.1"
+langchain = "^0.1.11"
+langchain-pinecone = "^0.0.3"
+langchain-openai = "^0.0.8"
+pypdf = "^4.1.0"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+isort = "^5.13.2"
+ipykernel = "^6.29.3"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
